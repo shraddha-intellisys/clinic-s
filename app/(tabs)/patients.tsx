@@ -3,32 +3,44 @@ import Card from '@/components/ui/Card';
 import Header from '@/components/ui/Header';
 import Input from '@/components/ui/Input';
 import { useAuth } from '@/contexts/AuthContext';
-import { loadPatients, savePatients, Patient, initializeStorage } from '@/utils/storage';
+import { Patient, initializeStorage, loadPatients, savePatients } from '@/utils/storage';
 import {
-    Calendar,
-    Edit,
-    Eye,
-    Mail,
-    MapPin,
-    Phone,
-    Plus,
-    Search,
-    User,
-    Heart,
-    AlertTriangle
+  AlertTriangle,
+  Calendar,
+  Edit,
+  Eye,
+  Heart,
+  Mail,
+  MapPin,
+  Phone,
+  Plus,
+  Search,
+  User
 } from 'lucide-react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-    Picker,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+
+type PatientFormData = {
+  name: string;
+  age: string;
+  gender: 'Male' | 'Female' | 'Other';
+  phone: string;
+  email: string;
+  address: string;
+  condition: string;
+  bloodGroup: string;
+  emergencyContact: string;
+  allergies: string;
+};
 
 export default function PatientsScreen() {
   const { user } = useAuth();
@@ -38,10 +50,10 @@ export default function PatientsScreen() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
-  const [newPatient, setNewPatient] = useState({
+  const [newPatient, setNewPatient] = useState<PatientFormData>({
     name: '',
     age: '',
-    gender: 'Male' as 'Male' | 'Female' | 'Other',
+    gender: 'Male',
     phone: '',
     email: '',
     address: '',
@@ -86,7 +98,9 @@ export default function PatientsScreen() {
       avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=2',
       bloodGroup: newPatient.bloodGroup,
       emergencyContact: newPatient.emergencyContact,
-      allergies: newPatient.allergies ? newPatient.allergies.split(',').map(a => a.trim()) : []
+      allergies: newPatient.allergies
+        ? newPatient.allergies.split(',').map((a: string) => a.trim()).filter((a: string) => a !== '')
+        : []
     };
 
     const updatedPatients = [...patients, patient];
@@ -119,8 +133,8 @@ export default function PatientsScreen() {
       p.id === editingPatient.id ? {
         ...editingPatient,
         allergies: typeof editingPatient.allergies === 'string' 
-          ? editingPatient.allergies.split(',').map(a => a.trim())
-          : editingPatient.allergies
+          ? editingPatient.allergies.split(',').map((a: string) => a.trim()).filter((a: string) => a !== '')
+          : editingPatient.allergies || []
       } : p
     );
     
@@ -134,7 +148,9 @@ export default function PatientsScreen() {
   const openEditModal = (patient: Patient) => {
     setEditingPatient({
       ...patient,
-      allergies: Array.isArray(patient.allergies) ? patient.allergies.join(', ') : patient.allergies || ''
+      allergies: Array.isArray(patient.allergies) 
+        ? patient.allergies.join(', ') 
+        : patient.allergies || ''
     });
     setShowEditModal(true);
   };
@@ -366,7 +382,9 @@ export default function PatientsScreen() {
               />
               <Input
                 placeholder="Allergies (comma separated)"
-                value={typeof editingPatient.allergies === 'string' ? editingPatient.allergies : editingPatient.allergies?.join(', ') || ''}
+                value={typeof editingPatient.allergies === 'string' 
+                  ? editingPatient.allergies 
+                  : (editingPatient.allergies || []).join(', ')}
                 onChangeText={(text) => setEditingPatient({...editingPatient, allergies: text})}
                 multiline
               />
@@ -450,7 +468,7 @@ export default function PatientsScreen() {
                     <Text style={styles.allergiesTitle}>Allergies</Text>
                   </View>
                   <View style={styles.allergiesList}>
-                    {selectedPatient.allergies.map((allergy, index) => (
+                    {(Array.isArray(selectedPatient.allergies) ? selectedPatient.allergies : []).map((allergy, index) => (
                       <View key={index} style={styles.allergyItem}>
                         <Text style={styles.allergyText}>{allergy}</Text>
                       </View>

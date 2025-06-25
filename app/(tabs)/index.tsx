@@ -20,25 +20,71 @@ import {
   View
 } from 'react-native';
 
+type ReceptionistStats = {
+  totalPatients: number;
+  todayAppointments: number;
+  pendingReports: number;
+  newRegistrations: number;
+};
+
+type DoctorStats = {
+  todayPatients: number;
+  pendingPrescriptions: number;
+  completedConsultations: number;
+  criticalAlerts: number;
+};
+
+type PatientStats = {
+  upcomingAppointments: number;
+  activePrescriptions: number;
+  labReports: number;
+  lastVisit: string;
+};
+
+type Stats = ReceptionistStats | DoctorStats | PatientStats;
+
+type ReceptionistActivity = {
+  id: number;
+  action: string;
+  patient: string;
+  time: string;
+};
+
+type DoctorActivity = {
+  id: number;
+  action: string;
+  patient: string;
+  time: string;
+};
+
+type PatientActivity = {
+  id: number;
+  action: string;
+  doctor: string;
+  time: string;
+};
+
+type Activity = ReceptionistActivity | DoctorActivity | PatientActivity;
+
 const mockStats = {
   receptionist: {
     totalPatients: 156,
     todayAppointments: 12,
     pendingReports: 8,
     newRegistrations: 5,
-  },
+  } as ReceptionistStats,
   doctor: {
     todayPatients: 8,
     pendingPrescriptions: 3,
     completedConsultations: 15,
     criticalAlerts: 2,
-  },
+  } as DoctorStats,
   patient: {
     upcomingAppointments: 1,
     activePrescriptions: 2,
     labReports: 4,
     lastVisit: '2 days ago',
-  },
+  } as PatientStats,
 };
 
 const recentActivities = {
@@ -46,17 +92,17 @@ const recentActivities = {
     { id: 1, action: 'New patient registered', patient: 'John Doe', time: '10 min ago' },
     { id: 2, action: 'Lab report uploaded', patient: 'Sarah Wilson', time: '25 min ago' },
     { id: 3, action: 'Appointment scheduled', patient: 'Mike Johnson', time: '1 hour ago' },
-  ],
+  ] as ReceptionistActivity[],
   doctor: [
     { id: 1, action: 'Prescription issued', patient: 'Emma Davis', time: '15 min ago' },
     { id: 2, action: 'Consultation completed', patient: 'Robert Brown', time: '45 min ago' },
     { id: 3, action: 'Lab results reviewed', patient: 'Lisa Anderson', time: '2 hours ago' },
-  ],
+  ] as DoctorActivity[],
   patient: [
     { id: 1, action: 'Prescription refilled', doctor: 'Dr. Smith', time: '1 day ago' },
     { id: 2, action: 'Lab report available', doctor: 'Dr. Johnson', time: '3 days ago' },
     { id: 3, action: 'Appointment confirmed', doctor: 'Dr. Smith', time: '1 week ago' },
-  ],
+  ] as PatientActivity[],
 };
 
 export default function DashboardScreen() {
@@ -70,76 +116,79 @@ export default function DashboardScreen() {
   const renderStatsCards = () => {
     switch (user.role) {
       case 'receptionist':
+        const receptionistStats = stats as ReceptionistStats;
         return (
           <View style={styles.statsGrid}>
             <Card style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
               <Users size={24} color="#1976D2" />
-              <Text style={styles.statNumber}>{stats.totalPatients}</Text>
+              <Text style={styles.statNumber}>{receptionistStats.totalPatients}</Text>
               <Text style={styles.statLabel}>Total Patients</Text>
             </Card>
             <Card style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
               <Calendar size={24} color="#2E7D32" />
-              <Text style={styles.statNumber}>{stats.todayAppointments}</Text>
+              <Text style={styles.statNumber}>{receptionistStats.todayAppointments}</Text>
               <Text style={styles.statLabel}>Today's Appointments</Text>
             </Card>
             <Card style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
               <FileText size={24} color="#F57C00" />
-              <Text style={styles.statNumber}>{stats.pendingReports}</Text>
+              <Text style={styles.statNumber}>{receptionistStats.pendingReports}</Text>
               <Text style={styles.statLabel}>Pending Reports</Text>
             </Card>
             <Card style={[styles.statCard, { backgroundColor: '#F3E5F5' }]}>
               <TrendingUp size={24} color="#7B1FA2" />
-              <Text style={styles.statNumber}>{stats.newRegistrations}</Text>
+              <Text style={styles.statNumber}>{receptionistStats.newRegistrations}</Text>
               <Text style={styles.statLabel}>New Registrations</Text>
             </Card>
           </View>
         );
       case 'doctor':
+        const doctorStats = stats as DoctorStats;
         return (
           <View style={styles.statsGrid}>
             <Card style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
               <Users size={24} color="#1976D2" />
-              <Text style={styles.statNumber}>{stats.todayPatients}</Text>
+              <Text style={styles.statNumber}>{doctorStats.todayPatients}</Text>
               <Text style={styles.statLabel}>Today's Patients</Text>
             </Card>
             <Card style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
               <FileText size={24} color="#F57C00" />
-              <Text style={styles.statNumber}>{stats.pendingPrescriptions}</Text>
+              <Text style={styles.statNumber}>{doctorStats.pendingPrescriptions}</Text>
               <Text style={styles.statLabel}>Pending Prescriptions</Text>
             </Card>
             <Card style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
               <Activity size={24} color="#2E7D32" />
-              <Text style={styles.statNumber}>{stats.completedConsultations}</Text>
+              <Text style={styles.statNumber}>{doctorStats.completedConsultations}</Text>
               <Text style={styles.statLabel}>Completed Today</Text>
             </Card>
             <Card style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
               <AlertCircle size={24} color="#D32F2F" />
-              <Text style={styles.statNumber}>{stats.criticalAlerts}</Text>
+              <Text style={styles.statNumber}>{doctorStats.criticalAlerts}</Text>
               <Text style={styles.statLabel}>Critical Alerts</Text>
             </Card>
           </View>
         );
       case 'patient':
+        const patientStats = stats as PatientStats;
         return (
           <View style={styles.statsGrid}>
             <Card style={[styles.statCard, { backgroundColor: '#E3F2FD' }]}>
               <Calendar size={24} color="#1976D2" />
-              <Text style={styles.statNumber}>{stats.upcomingAppointments}</Text>
+              <Text style={styles.statNumber}>{patientStats.upcomingAppointments}</Text>
               <Text style={styles.statLabel}>Upcoming Appointments</Text>
             </Card>
             <Card style={[styles.statCard, { backgroundColor: '#E8F5E8' }]}>
               <FileText size={24} color="#2E7D32" />
-              <Text style={styles.statNumber}>{stats.activePrescriptions}</Text>
+              <Text style={styles.statNumber}>{patientStats.activePrescriptions}</Text>
               <Text style={styles.statLabel}>Active Prescriptions</Text>
             </Card>
             <Card style={[styles.statCard, { backgroundColor: '#FFF3E0' }]}>
               <FileText size={24} color="#F57C00" />
-              <Text style={styles.statNumber}>{stats.labReports}</Text>
+              <Text style={styles.statNumber}>{patientStats.labReports}</Text>
               <Text style={styles.statLabel}>Lab Reports</Text>
             </Card>
             <Card style={[styles.statCard, { backgroundColor: '#F3E5F5' }]}>
               <Clock size={24} color="#7B1FA2" />
-              <Text style={styles.statText}>{stats.lastVisit}</Text>
+              <Text style={styles.statText}>{patientStats.lastVisit}</Text>
               <Text style={styles.statLabel}>Last Visit</Text>
             </Card>
           </View>
@@ -170,6 +219,15 @@ export default function DashboardScreen() {
       default:
         return [];
     }
+  };
+
+  const renderActivityDetail = (activity: Activity) => {
+    if ('patient' in activity) {
+      return activity.patient;
+    } else if ('doctor' in activity) {
+      return activity.doctor;
+    }
+    return '';
   };
 
   return (
@@ -206,7 +264,7 @@ export default function DashboardScreen() {
                 <View style={styles.activityContent}>
                   <Text style={styles.activityAction}>{activity.action}</Text>
                   <Text style={styles.activityDetail}>
-                    {user.role === 'patient' ? activity.doctor : activity.patient}
+                    {renderActivityDetail(activity)}
                   </Text>
                   <Text style={styles.activityTime}>{activity.time}</Text>
                 </View>
